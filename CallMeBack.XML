@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<voicemail >
+
+    <!-- =======================  CallMeBack inno srl 2009 =============================== -->
+    <function define="Main">
+	<event type="timer" name="vbguard">
+		<pbx-disc /> 
+  	</event>
+	<timer name="vbguard" sec="10" /> 
+	<pbx-getcallinfo out-cgpn="$cgpn" out-cdpn="$cdpn" out-leg2="$leg2" />
+	<assign out="$Caller" value="$cgpn" />
+        <assign out="$Mess" value="innovaphone CallBack" />
+        <assign out="$client" value="" />
+        <assign out="$done" value="" />
+	<event type="dtmf" block="false">
+  		<if notcond="$done">
+			<timer name="vbguard" sec="10" /> 
+  			<pbx-getdtmfdigit out-dtmf="$dtmf" />
+			<lib-strcat string="$client" string2="$dtmf" out-string="$client" /> 
+			<pbx-finduser-e164 e164="$client" out-cn="$cn"/>
+			<if cond="$cn">
+    				<store-get root="" name="reminder.$coder" out-url="$ctrl" /> 
+				<assign out="$done" value="true" />
+  				<pbx-im cgpn="$Caller" e164="$client" text="$Mess"/>			
+				<pbx-prompt url="$ctrl" />
+				<pbx-disc /> 
+			</if>
+		</if>
+	 </event>
+	<store-cookie root="" name="Default.txt" out="$def"/>
+	<if cond="$def">
+		<store-get root="" name="reminder.$coder" out-url="$ctrl" /> 
+		<pbx-im cgpn="$Caller" e164="$def" text="$Mess"/>		
+		<store-getstat name="reminder.g711a" out-error="$error" />
+		<if notcond="$error">
+			<pbx-prompt url="$ctrl" />
+		</if>
+		<pbx-disc /> 
+	</if>
+	<store-get root="" name="beep.$coder" out-url="$ctrl" /> 
+	<pbx-prompt url="$ctrl"  repeat="False" /> 
+	<while notcond="$menu-ok">
+  		<store-get root="" name="silence.$coder" out-url="$ctrl" /> 
+  		<assign out="$Teiln-timeout" value="true" /> 
+  		<pbx-prompt url="$ctrl" sec="4" repeat="true" /> 
+  	</while>
+    </function>
+
+</voicemail>
+
+<!-- Call Me Back with VoiceMail XML Script wiki-src/xml/CallMeBack 1,0,0,0 (C) innovaphone AG 2010-2010 -->
